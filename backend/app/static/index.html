@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finance Lab — Лаборатория Экономических Исследований</title>
+  <meta name="description" content="Институциональная исследовательская лаборатория: симуляции ФРС, новые экономические отношения, финансовые деривативы QuantLib, DSGE и роль ИИ в экономике.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <!-- Chart.js for professional economic visualizers -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body class="theme-dark">
+  <div class="app-container">
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">FINANCE LAB</h1>
+          <span class="brand-subtitle">INSTITUTIONAL QUANTITATIVE & MACROECONOMIC SUITE</span>
+        </div>
+      </div>
+
+      <!-- Ticker Ribbon -->
+      <div class="ticker-ribbon">
+        <div class="ticker-item"><span class="ticker-name">FED FUNDS:</span> <span class="ticker-val" id="tick-fed">5.33%</span></div>
+        <div class="ticker-item"><span class="ticker-name">US 10Y:</span> <span class="ticker-val" id="tick-us10y">4.25%</span></div>
+        <div class="ticker-item"><span class="ticker-name">2Y/10Y SPREAD:</span> <span class="ticker-val pos" id="tick-spread">-0.15%</span></div>
+        <div class="ticker-item"><span class="ticker-name">INFLATION PCE:</span> <span class="ticker-val" id="tick-pce">2.4%</span></div>
+        <div class="ticker-item"><span class="ticker-name">COMPUTE TOKEN:</span> <span class="ticker-val pos" id="tick-cbt">$10.24</span></div>
+      </div>
+
+      <!-- Live Engine Status Badge -->
+      <div class="header-actions">
+        <div class="status-indicator" id="ws-indicator" title="WebSocket Simulation Stream">
+          <span class="status-dot"></span>
+          <span class="status-label">ENGINE: LIVE</span>
+        </div>
+        <button class="btn btn-outline cloud-btn" id="btn-cloud-modal" onclick="switchTab('tab-cloud')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+          </svg>
+          Cloud Shell
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav class="main-nav">
+      <button class="nav-tab active" data-tab="tab-fed" onclick="switchTab('tab-fed')">
+        <span class="tab-icon">🏦</span> ФРС и ДКП
+      </button>
+      <button class="nav-tab" data-tab="tab-experiments" onclick="switchTab('tab-experiments')">
+        <span class="tab-icon">🔬</span> Новые Экономические Отношения
+      </button>
+      <button class="nav-tab" data-tab="tab-instruments" onclick="switchTab('tab-instruments')">
+        <span class="tab-icon">💎</span> Финансовые Инструменты (QuantLib)
+      </button>
+      <button class="nav-tab" data-tab="tab-ai" onclick="switchTab('tab-ai')">
+        <span class="tab-icon">🤖</span> Роль ИИ в Экономике
+      </button>
+      <button class="nav-tab" data-tab="tab-systemic" onclick="switchTab('tab-systemic')">
+        <span class="tab-icon">🌐</span> Системный Риск (Eisenberg-Noe)
+      </button>
+      <button class="nav-tab" data-tab="tab-cloud" onclick="switchTab('tab-cloud')">
+        <span class="tab-icon">⚡</span> Google Cloud Shell
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="content-viewport">
+
+      <!-- TAB 1: Federal Reserve & Central Bank -->
+      <section id="tab-fed" class="tab-content active">
+        <div class="section-grid">
+          <!-- Control Panel -->
+          <div class="panel glass-card">
+            <div class="panel-header">
+              <h3>Параметры Правила Тейлора & Ставки ФРС</h3>
+              <span class="badge">Institutional Policy</span>
+            </div>
+            <p class="panel-desc">Моделирование реакции Федеральной Резервной Системы на инфляционный шок и разрыв выпуска.</p>
+            <div class="form-group">
+              <label for="fed-inflation">Текущая инфляция (π, %):</label>
+              <div class="slider-row">
+                <input type="range" id="fed-inflation" min="0" max="15" step="0.1" value="3.2" oninput="updateFedCalc()">
+                <span class="slider-val" id="fed-inflation-val">3.2%</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="fed-outputgap">Разрыв выпуска (Output Gap, %):</label>
+              <div class="slider-row">
+                <input type="range" id="fed-outputgap" min="-8" max="8" step="0.1" value="-0.5" oninput="updateFedCalc()">
+                <span class="slider-val" id="fed-outputgap-val">-0.5%</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="fed-target-inf">Целевая инфляция ФРС (π*, %):</label>
+              <div class="slider-row">
+                <input type="range" id="fed-target-inf" min="1" max="4" step="0.1" value="2.0" oninput="updateFedCalc()">
+                <span class="slider-val" id="fed-target-inf-val">2.0%</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="fed-rstar">Нейтральная реальная ставка (r*, %):</label>
+              <div class="slider-row">
+                <input type="range" id="fed-rstar" min="-1" max="3" step="0.1" value="0.75" oninput="updateFedCalc()">
+                <span class="slider-val" id="fed-rstar-val">0.75%</span>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="simulateFedPolicy()">
+              Рассчитать Прогноз Ставки
+            </button>
+            <div class="stat-callout mt-3">
+              <span class="stat-label">Рекомендуемая Ставка (Taylor 1993):</span>
+              <span class="stat-number text-accent" id="calc-taylor-rate">4.45%</span>
+            </div>
+          </div>
+
+          <!-- Yield Curve & Charts -->
+          <div class="panel glass-card">
+            <div class="panel-header">
+              <h3>Кривая Доходности US Treasury (QuantLib Bootstrapping)</h3>
+              <span class="badge badge-accent">Par Yield Curve</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="chart-yield-curve"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: New Economic Relations -->
+      <section id="tab-experiments" class="tab-content">
+        <div class="section-grid">
+          <div class="panel glass-card">
+            <div class="panel-header">
+              <h3>Лаборатория Новых Экономических Отношений</h3>
+              <span class="badge badge-purple">Frontier Economics</span>
+            </div>
+            <p class="panel-desc">Тестирование программируемых валют, демерреджа (платы за простой денег) и дивиденда от ИИ.</p>
+            <div class="form-group">
+              <label for="exp-type-select">Тип Новых Отношений:</label>
+              <select id="exp-type-select" class="form-select" onchange="toggleExpInputs()">
+                <option value="programmable_cbdc">Программируемый CBDC с демерреджем (Silvio Gesell Money)</option>
+                <option value="ai_macro_transformation">Универсальный дивиденд от ИИ (AI Universal Dividend)</option>
+                <option value="fed_regime_comparison">Сравнение монетарных режимов (Taylor vs AIT vs NGDP)</option>
+              </select>
+            </div>
+            <div id="cbdc-controls">
+              <div class="form-group">
+                <label for="cbdc-demurrage">Ставка демерреджа / отрицательный процент на CBDC (%/год):</label>
+                <input type="number" id="cbdc-demurrage" class="form-input" value="-1.5" step="0.1">
+              </div>
+              <div class="form-group">
+                <label for="cbdc-bank-rate">Ставка по депозитам комм. банков (%/год):</label>
+                <input type="number" id="cbdc-bank-rate" class="form-input" value="3.0" step="0.1">
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="runLaboratoryExperiment()">
+              Запустить Лабораторную Симуляцию
+            </button>
+            <div class="findings-box mt-3" id="exp-findings">
+              <span class="findings-title">Научные Выводы Модели:</span>
+              <ul id="findings-list">
+                <li>Нажмите «Запустить Лабораторную Симуляцию» для начала расчета равновесия.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="panel glass-card">
+            <div class="panel-header">
+              <h3 id="exp-chart-title">Динамика Макроэкономического Эксперимента</h3>
+              <span class="badge">Multi-Quarter Projection</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="chart-experiment"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: Financial Instruments (QuantLib) -->
+      <section id="tab-instruments" class="tab-content">
+        <div class="section-grid">
+          <div class="panel glass-card">
+            <div class="panel-header">
+              <h3>Оценка Деривативов & Greeks (QuantLib)</h3>
+              <span class="badge badge-accent">Goldman / JPM Standard</span>
+            </div>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label for="inst-spot">Спот-цена базового актива (S):</label>
+                <input type="number" id="inst-spot" class="form-input" value="100.0" step="1">
+              </div>
+              <div class="form-group">
+                <label for="inst-strike">Страйк (K):</label>
+                <input type="number" id="inst-strike" class="form-input" value="105.0" step="1">
+              </div>
+              <div class="form-group">
+                <label for="inst-vol">Волатильность (σ, %):</label>
+                <input type="number" id="inst-vol" class="form-input" value="25.0" step="1">
+              </div>
+              <div class="form-group">
+                <label for="inst-rate">Безрисковая ставка (r, %):</label>
+                <input type="number" id="inst-rate" class="form-input" value="4.5" step="0.1">
+              </div>
+              <div class="form-group">
+                <label for="inst-expiry">Срок до экспирации (лет):</label>
+                <input type="number" id="inst-expiry" class="form-input" value="0.5" step="0.1">
+              </div>
+              <div class="form-group">
+                <label for="inst-opt-type">Тип Опциона:</label>
+                <select id="inst-opt-type" class="form-select">
+                  <option value="call">Call</option>
+                  <option value="put">Put</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-primary mt-2" onclick="priceOptionQuantLib()">
+              Рассчитать Оценку QuantLib
+            </button>
+
+            <!-- Greeks Summary Table -->
+            <div class="greeks-grid mt-3">
+              <div class="greek-card"><span class="greek-name">NPV (Цена)</span><span class="greek-val" id="greek-npv">$4.82</span></div>
+              <div class="greek-card"><span class="greek-name">Delta (Δ)</span><span class="greek-val" id="greek-delta">0.452</span></div>
+              <div class="greek-card"><span class="greek-name">Gamma (Γ)</span><span class="greek-val" id="greek-gamma">0.021</span></div>
+              <div class="greek-card"><span class="greek-name">Vega (ν)</span><span class="greek-val" id="greek-vega">0.268</span></div>
+              <div class="greek-card"><span class="greek-name">Theta (Θ)</span><span class="greek-val" id="greek-theta">-0.024</span></div>
+              <div class="greek-card"><span class="greek-name">Rho (ρ)</span><span class="greek-val" id="greek-rho">0.185</span></div>
+            </div>
+          </div>
+
+          <!-- Novel AMM / Compute Token simulator -->
+          <div class="panel glass-card">
+            <div class="panel-header">
+              <h3>Новый Инструмент: Концентрированная Ликвидность AMM (Uniswap v3)</h3>
+              <span class="badge badge-purple">Algorithmic Market</span>
+            </div>
+            <p class="panel-desc">Сравнение эффективности капитала и непостоянных потерь (Impermanent Loss).</p>
+            <div class="chart-container">
+              <canvas id="chart-amm"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: AI in Economy -->
+      <section id="tab-ai" class="tab-content">
+        <div class="section-grid">
+          <div class="panel glass-card">
+            <div class="panel-header">
+              <h3>ИИ Ценовой Картель (Calvano et al. AER 2020)</h3>
+              <span class="badge badge-accent">Q-Learning Bertrand Oligopoly</span>
+            </div>
+            <p class="panel-desc">Симуляция автономных RL-агентов ценообразования. Тестирование возникновения молчаливого ценового сговора выше равновесия Нэша.</p>
+            <div class="form-group">
+              <label for="ai-sellers">Количество конкурирующих ИИ-алгоритмов:</label>
+              <input type="number" id="ai-sellers" class="form-input" value="2" min="2" max="4">
+            </div>
+            <div class="form-group">
+              <label for="ai-episodes">Число эпизодов обучения:</label>
+              <input type="number" id="ai-episodes" class="form-input" value="600" step="100">
+            </div>
+            <div class="form-group">
+              <label for="ai-discount">Коэффициент дисконтирования терпения (γ):</label>
+              <input type="number" id="ai-discount" class="form-input" value="0.95" step="0.01" min="0.5" max="0.99">
+            </div>
+            <button class="btn btn-primary" onclick="simulateAICollusion()">
+              Запустить Обучение ИИ Агентов
+            </button>
+            <div class="stat-callout mt-3">
+              <span class="stat-label">Индекс Молчаливого Сговора (Collusion Δ):</span>
+              <span class="stat-number text-accent" id="ai-collusion-index">0.72 (Высокий)</span>
+            </div>
+            <div class="findings-box mt-2" id="ai-interpretation">
+              ИИ-алгоритмы самостоятельно освоили удержание монопольной цены для максимизации взаимной прибыли.
+            </div>
+          </div>
+
+          <div class="panel glass-card">
+            <div class="panel-header">
+              <h3>Траектория Цен ИИ Агентов vs Равновесие Нэша</h3>
+              <span class="badge">Convergence Curve</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="chart-ai-pricing"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: Systemic Risk & Eisenberg-Noe -->
+      <section id="tab-systemic" class="tab-content">
+        <div class="section-grid">
+          <div class="panel glass-card">
+            <div class="panel-header">
+              <h3>Стресс-Тест Межбанковской Заражаемости (Eisenberg-Noe)</h3>
+              <span class="badge badge-accent">BIS / ECB Clearing Model</span>
+            </div>
+            <p class="panel-desc">Официальный алгоритм клирингового вектора взаимных обязательств банковской сети при экзогенном шоке активов.</p>
+            <div class="form-group">
+              <label for="systemic-shock">Размер шока внешних активов (% потерь):</label>
+              <div class="slider-row">
+                <input type="range" id="systemic-shock" min="0" max="60" step="5" value="25" oninput="document.getElementById('systemic-shock-val').innerText = this.value + '%'">
+                <span class="slider-val" id="systemic-shock-val">25%</span>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="runSystemicStressTest()">
+              Выполнить Клиринг Сети Банков
+            </button>
+            <div class="bank-status-list mt-3" id="bank-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <div class="panel glass-card">
+            <div class="panel-header">
+              <h3>Вектор Платежей и Коэффициенты Возврата (Recovery Rates)</h3>
+              <span class="badge">Fixed-Point Clearing</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="chart-systemic"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: Google Cloud Shell Terminal Hub -->
+      <section id="tab-cloud" class="tab-content">
+        <div class="panel glass-card full-width">
+          <div class="panel-header">
+            <h3>Google Cloud Shell Интеграция & Дублирование Терминала</h3>
+            <span class="badge badge-accent">Ultra-Fast Cloud Compute</span>
+          </div>
+          <p class="panel-desc">
+            Все вычисления лаборатории можно запускать в Google Cloud Shell / Cloud VM. Порты 8000 (API), 8001 (WS) автоматически пробрасываются на ваш локальный компьютер через безопасный туннель.
+          </p>
+
+          <div class="cloud-steps-grid">
+            <div class="cloud-step-box">
+              <div class="step-num">ШАГ 1</div>
+              <h4>Быстрый запуск в Google Cloud Shell</h4>
+              <p>Откройте Google Cloud Shell в браузере и вставьте одну команду:</p>
+              <div class="code-snippet">
+                <code>git clone https://github.com/your-repo/finance-lab.git && cd finance-lab && bash cloud/setup-vm.sh</code>
+                <button class="btn-copy" onclick="copyCode(this)">Копировать</button>
+              </div>
+            </div>
+
+            <div class="cloud-step-box">
+              <div class="step-num">ШАГ 2</div>
+              <h4>Подключение и зеркалирование терминала в Windows</h4>
+              <p>В вашем терминале PowerShell на компьютере выполните:</p>
+              <div class="code-snippet">
+                <code>powershell -ExecutionPolicy Bypass -File .\cloud\connect.ps1 -Action connect -UseCloudShell</code>
+                <button class="btn-copy" onclick="copyCode(this)">Копировать</button>
+              </div>
+            </div>
+
+            <div class="cloud-step-box">
+              <div class="step-num">ШАГ 3</div>
+              <h4>Интерактивный Терминал (SSH Session)</h4>
+              <p>Для открытия прямого интерактивного шелла с дублированием:</p>
+              <div class="code-snippet">
+                <code>powershell -ExecutionPolicy Bypass -File .\cloud\connect.ps1 -Action connect -Interactive</code>
+                <button class="btn-copy" onclick="copyCode(this)">Копировать</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cloud Port Matrix -->
+          <div class="port-matrix mt-4">
+            <h4>Матрица Туннелирования Портов:</h4>
+            <div class="ports-list">
+              <div class="port-badge active">FastAPI Backend: <code>localhost:8000</code></div>
+              <div class="port-badge active">WebSocket Feed: <code>localhost:8001</code></div>
+              <div class="port-badge">Jupyter Lab: <code>localhost:8888</code></div>
+              <div class="port-badge">PostgreSQL: <code>localhost:5432</code></div>
+              <div class="port-badge">Redis Cache: <code>localhost:6379</code></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

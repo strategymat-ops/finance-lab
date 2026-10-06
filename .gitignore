@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Rust / Cargo
+target/
+**/*.rs.bk
+Cargo.lock
+
+# Environment
+.env
+.env.local
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Database & persistent data
+postgres_data/
+redis_data/
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

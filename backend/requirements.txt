@@ -19,7 +19,7 @@ alembic>=1.13
 # ── DSGE Models ────────────────────────────────────────────────────────────
 # econpizza: Nonlinear DSGE with heterogeneous agents (JAX-based)
 # Used by: Research economists, central bank policy analysis
-econpizza>=0.7
+econpizza>=0.6.0
 
 # gEconpy: Specify DSGE as optimization problems (auto-derives FOCs)
 # Used by: Academic researchers, policy institutions

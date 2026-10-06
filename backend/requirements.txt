@@ -29,7 +29,6 @@ econ-ark
 # Used by: Goldman Sachs, JP Morgan, every major bank
 QuantLib
 mesa
-abce
 
 # ── Data Sources ───────────────────────────────────────────────────────────
 # FRED API: Federal Reserve Economic Data

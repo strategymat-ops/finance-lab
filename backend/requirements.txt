@@ -19,23 +19,10 @@ alembic>=1.13
 # ── DSGE Models ────────────────────────────────────────────────────────────
 # econpizza: Nonlinear DSGE with heterogeneous agents (JAX-based)
 # Used by: Research economists, central bank policy analysis
-econpizza>=0.6.0
-
-# gEconpy: Specify DSGE as optimization problems (auto-derives FOCs)
-# Used by: Academic researchers, policy institutions
-gEconpy>=1.2
-
-# pydsge: Linear DSGE estimation with occasionally binding constraints
-# Used by: Central banks modeling Zero Lower Bound
-pydsge>=0.3
-
-# dolo: Symbolic DSGE model builder
-dolo>=0.5
-
-# ── Heterogeneous Agent Models ─────────────────────────────────────────────
-# HARK (Econ-ARK): THE standard for heterogeneous agent models
-# Used by: Federal Reserve, ECB, IMF, World Bank
-econ-ark>=0.15
+econpizza
+gEconpy
+pydsge
+econ-ark
 
 # ── Financial Engineering (Industry Standard) ──────────────────────────────
 # QuantLib: THE industry standard for derivatives pricing

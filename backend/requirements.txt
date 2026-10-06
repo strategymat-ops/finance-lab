@@ -27,13 +27,9 @@ econ-ark
 # ── Financial Engineering (Industry Standard) ──────────────────────────────
 # QuantLib: THE industry standard for derivatives pricing
 # Used by: Goldman Sachs, JP Morgan, every major bank
-QuantLib-Python>=1.34
-
-# ── Agent-Based Economics ──────────────────────────────────────────────────
-# Mesa: Professional ABM framework
-mesa>=3.0
-# abce: Agent-Based Computational Economics
-abce>=0.9
+QuantLib
+mesa
+abce
 
 # ── Data Sources ───────────────────────────────────────────────────────────
 # FRED API: Federal Reserve Economic Data
